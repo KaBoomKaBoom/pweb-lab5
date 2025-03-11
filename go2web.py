@@ -189,3 +189,57 @@ def make_http_request(url, method="GET", headers=None, data=None, follow_redirec
             
     except Exception as e:
         return f"Error making HTTP request: {str(e)}", {}
+    
+def search(term, search_engine="duckduckgo"):
+    if search_engine == "duckduckgo":
+        search_url = f"https://html.duckduckgo.com/html/?q={quote_plus(term)}"
+        print(f"Searching for: {search_url}")
+        response, headers = make_http_request(search_url)
+        
+        soup = BeautifulSoup(response, 'html.parser')
+        links = []
+        for result in soup.find_all('div', class_='result__body'):
+            a_tag = result.find('a', class_='result__a')
+            if a_tag and 'href' in a_tag.attrs:
+                link = a_tag['href']
+                if link.startswith("//duckduckgo.com/l/?uddg="):
+                    actual_url = link.split("uddg=")[1].split("&")[0]
+                    actual_url = actual_url.replace("%3A", ":").replace("%2F", "/")
+                    links.append((a_tag.get_text(), actual_url))
+                    if len(links) >= 10:
+                        break
+        
+        return links
+    else:
+        return []
+def format_html_content(content):
+    soup = BeautifulSoup(content, 'html.parser')
+    
+    title = soup.title.string if soup.title else "No title"
+    print(f"\n=== {title} ===\n")
+    
+    # Print the content with minimal formatting
+    visible_text = []
+    for text in soup.stripped_strings:
+        visible_text.append(text)
+    
+    formatted_text = "\n".join(visible_text)
+    # Remove excessive newlines
+    formatted_text = re.sub(r'\n{3,}', '\n\n', formatted_text)
+    
+    print(formatted_text)
+    
+    print("\n=== Links ===\n")
+    links = []
+    for i, a in enumerate(soup.find_all('a', href=True)):
+        print(f"{i+1}. {a.get_text()}: {a['href']}")
+        links.append((a.get_text(), a['href']))
+    
+    return links
+
+def format_json_content(content):
+    try:
+        json_data = json.loads(content)
+        return json.dumps(json_data, indent=2)
+    except:
+        return content
