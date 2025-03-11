@@ -141,3 +141,17 @@ def make_http_request(url, method="GET", headers=None, data=None, follow_redirec
                 decoded_body = body.decode(charset, errors="replace")
             except (UnicodeDecodeError, LookupError):
                 decoded_body = body.decode("utf-8", errors="replace")
+                        # Cache the response
+            if method == "GET" and status_code == 200:
+                if accept:
+                    cache.set(url, decoded_body, response_headers, accept)
+                else:
+                    cache.set(url, decoded_body, response_headers)
+            
+            return decoded_body, response_headers
+            
+        except Exception as e:
+            return f"Error parsing response: {str(e)}", {}
+            
+    except Exception as e:
+        return f"Error making HTTP request: {str(e)}", {}
