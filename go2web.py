@@ -189,3 +189,26 @@ def make_http_request(url, method="GET", headers=None, data=None, follow_redirec
             
     except Exception as e:
         return f"Error making HTTP request: {str(e)}", {}
+    
+def search(term, search_engine="duckduckgo"):
+    if search_engine == "duckduckgo":
+        search_url = f"https://html.duckduckgo.com/html/?q={quote_plus(term)}"
+        print(f"Searching for: {search_url}")
+        response, headers = make_http_request(search_url)
+        
+        soup = BeautifulSoup(response, 'html.parser')
+        links = []
+        for result in soup.find_all('div', class_='result__body'):
+            a_tag = result.find('a', class_='result__a')
+            if a_tag and 'href' in a_tag.attrs:
+                link = a_tag['href']
+                if link.startswith("//duckduckgo.com/l/?uddg="):
+                    actual_url = link.split("uddg=")[1].split("&")[0]
+                    actual_url = actual_url.replace("%3A", ":").replace("%2F", "/")
+                    links.append((a_tag.get_text(), actual_url))
+                    if len(links) >= 10:
+                        break
+        
+        return links
+    else:
+        return []
