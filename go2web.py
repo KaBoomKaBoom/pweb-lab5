@@ -243,3 +243,52 @@ def format_json_content(content):
         return json.dumps(json_data, indent=2)
     except:
         return content
+    
+def main():
+    parser = argparse.ArgumentParser(description="Simple web client for HTTP requests")
+    parser.add_argument("-u", "--url", help="Make an HTTP request to the specified URL")
+    parser.add_argument("-s", "--search", help="Search term to look up")
+    
+    args = parser.parse_args()
+    # Store last search results for link navigation
+    last_results_file = os.path.join(os.path.expanduser("~"), ".go2web_last_results")
+    
+    if args.url:
+        accept = None
+        if args.json:
+            accept = "application/json"
+        elif args.html:
+            accept = "text/html"
+            
+        response, headers = make_http_request(args.url, accept=accept)
+        
+        content_type = headers.get("Content-Type", "")
+        if "application/json" in content_type:
+            print(format_json_content(response))
+        else:
+            links = format_html_content(response)
+            
+            # Save links for future reference
+            with open(last_results_file, 'w') as f:
+                json.dump([(text, link) for text, link in links], f)  
+                
+            print("\nYou can access any of these links using: go2web --link <number>")      
+            
+    elif args.search:
+        results = search(args.search)
+        print(f"\n=== Search Results for '{args.search}' ===\n")
+        
+        if results:
+            for i, (title, url) in enumerate(results):
+                print(f"{i+1}. {title}\n   {url}\n")
+            
+            # Save search results for link navigation
+            with open(last_results_file, 'w') as f:
+                json.dump(results, f)
+            
+            print("\nYou can access any of these links using: go2web --link <number>")
+        else:
+            print("No results found.")
+        
+    else:
+        parser.print_help()
