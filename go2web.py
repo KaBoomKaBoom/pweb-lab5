@@ -77,3 +77,67 @@ def make_http_request(url, method="GET", headers=None, data=None, follow_redirec
             response += data
         
         s.close()
+        
+        # Parse response
+        try:
+            header_end = response.find(b"\r\n\r\n")
+            headers_raw = response[:header_end].decode("utf-8", errors="ignore")
+            body = response[header_end + 4:]
+            
+            # Extract status code and headers
+            status_line = headers_raw.split("\r\n")[0]
+            status_code = int(status_line.split(" ")[1])
+            response_headers = {}
+            
+            for header_line in headers_raw.split("\r\n")[1:]:
+                if ":" in header_line:
+                    key, value = header_line.split(":", 1)
+                    response_headers[key.strip()] = value.strip()
+            
+            # Handle redirects
+            if follow_redirects and status_code in (301, 302, 303, 307, 308) and "Location" in response_headers and max_redirects > 0:
+                redirect_url = response_headers["Location"]
+                
+                # Handle relative URLs
+                if not redirect_url.startswith(("http://", "https://")):
+                    if redirect_url.startswith("/"):
+                        redirect_url = f"{parsed_url.scheme}://{hostname}{redirect_url}"
+                    else:
+                        redirect_url = f"{parsed_url.scheme}://{hostname}/{redirect_url}"
+                
+                print(f"Redirecting to: {redirect_url}")
+                return make_http_request(redirect_url, method, headers, data, follow_redirects, accept, max_redirects - 1)
+                
+            # Decode body based on Content-Type
+            content_type = response_headers.get("Content-Type", "")
+            charset = "utf-8"  # default charset
+            
+            if "charset=" in content_type:
+                charset = content_type.split("charset=")[1].split(";")[0].strip()
+            
+            # Handle Content-Encoding if present
+            if "Content-Encoding" in response_headers:
+                encoding = response_headers["Content-Encoding"].lower()
+                if encoding == "gzip":
+                    import gzip
+                    try:
+                        body = gzip.decompress(body)
+                    except OSError:
+                        print("Error: Not a gzipped file")
+                        return body.decode(charset, errors="replace"), response_headers
+                elif encoding == "deflate":
+                    import zlib
+                    try:
+                        body = zlib.decompress(body)
+                    except zlib.error:
+                        print("Error: Not a deflated file")
+                        return body.decode(charset, errors="replace"), response_headers
+            
+            try:
+                decoded_body = body.decode(charset, errors="replace")
+            except (UnicodeDecodeError, LookupError):
+                decoded_body = body.decode("utf-8", errors="replace")
+            try:
+                decoded_body = body.decode(charset, errors="replace")
+            except (UnicodeDecodeError, LookupError):
+                decoded_body = body.decode("utf-8", errors="replace")
