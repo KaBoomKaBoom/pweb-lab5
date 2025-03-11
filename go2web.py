@@ -250,3 +250,24 @@ def main():
     parser.add_argument("-s", "--search", help="Search term to look up")
     
     args = parser.parse_args()
+    # Store last search results for link navigation
+    last_results_file = os.path.join(os.path.expanduser("~"), ".go2web_last_results")
+    
+    if args.url:
+        accept = None
+        if args.json:
+            accept = "application/json"
+        elif args.html:
+            accept = "text/html"
+            
+        response, headers = make_http_request(args.url, accept=accept)
+        
+        content_type = headers.get("Content-Type", "")
+        if "application/json" in content_type:
+            print(format_json_content(response))
+        else:
+            links = format_html_content(response)
+            
+            # Save links for future reference
+            with open(last_results_file, 'w') as f:
+                json.dump([(text, link) for text, link in links], f)        
