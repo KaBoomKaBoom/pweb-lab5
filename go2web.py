@@ -243,3 +243,10 @@ def format_json_content(content):
         return json.dumps(json_data, indent=2)
     except:
         return content
+    
+def main():
+    parser = argparse.ArgumentParser(description="Simple web client for HTTP requests")
+    parser.add_argument("-u", "--url", help="Make an HTTP request to the specified URL")
+    parser.add_argument("-s", "--search", help="Search term to look up")
+    
+    args = parser.parse_args()
