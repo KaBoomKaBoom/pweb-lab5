@@ -289,6 +289,36 @@ def main():
             print("\nYou can access any of these links using: go2web --link <number>")
         else:
             print("No results found.")
-        
+            
+    elif args.link is not None:
+        if not os.path.exists(last_results_file):
+            print("No previous search results found. Perform a search first.")
+            return
+            
+        with open(last_results_file, 'r') as f:
+            results = json.load(f)
+            
+        if 1 <= args.link <= len(results):
+            title, url = results[args.link - 1]
+            print(f"Accessing: {title} - {url}")
+            
+            accept = None
+            if args.json:
+                accept = "application/json"
+            elif args.html:
+                accept = "text/html"
+                
+            response, headers = make_http_request(url, accept=accept)
+            
+            content_type = headers.get("Content-Type", "")
+            if "application/json" in content_type:
+                print(format_json_content(response))
+            else:
+                format_html_content(response)
+        else:
+            print(f"Invalid link number. Please choose a number between 1 and {len(results)}.")    
     else:
         parser.print_help()
+        
+if __name__ == "__main__":
+    main()
