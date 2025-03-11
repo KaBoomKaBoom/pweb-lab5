@@ -212,3 +212,27 @@ def search(term, search_engine="duckduckgo"):
         return links
     else:
         return []
+def format_html_content(content):
+    soup = BeautifulSoup(content, 'html.parser')
+    
+    title = soup.title.string if soup.title else "No title"
+    print(f"\n=== {title} ===\n")
+    
+    # Print the content with minimal formatting
+    visible_text = []
+    for text in soup.stripped_strings:
+        visible_text.append(text)
+    
+    formatted_text = "\n".join(visible_text)
+    # Remove excessive newlines
+    formatted_text = re.sub(r'\n{3,}', '\n\n', formatted_text)
+    
+    print(formatted_text)
+    
+    print("\n=== Links ===\n")
+    links = []
+    for i, a in enumerate(soup.find_all('a', href=True)):
+        print(f"{i+1}. {a.get_text()}: {a['href']}")
+        links.append((a.get_text(), a['href']))
+    
+    return links
