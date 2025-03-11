@@ -270,4 +270,22 @@ def main():
             
             # Save links for future reference
             with open(last_results_file, 'w') as f:
-                json.dump([(text, link) for text, link in links], f)        
+                json.dump([(text, link) for text, link in links], f)  
+                
+            print("\nYou can access any of these links using: go2web --link <number>")      
+            
+    elif args.search:
+        results = search(args.search)
+        print(f"\n=== Search Results for '{args.search}' ===\n")
+        
+        if results:
+            for i, (title, url) in enumerate(results):
+                print(f"{i+1}. {title}\n   {url}\n")
+            
+            # Save search results for link navigation
+            with open(last_results_file, 'w') as f:
+                json.dump(results, f)
+            
+            print("\nYou can access any of these links using: go2web --link <number>")
+        else:
+            print("No results found.")
