@@ -289,3 +289,6 @@ def main():
             print("\nYou can access any of these links using: go2web --link <number>")
         else:
             print("No results found.")
+        
+    else:
+        parser.print_help()
