@@ -236,3 +236,10 @@ def format_html_content(content):
         links.append((a.get_text(), a['href']))
     
     return links
+
+def format_json_content(content):
+    try:
+        json_data = json.loads(content)
+        return json.dumps(json_data, indent=2)
+    except:
+        return content
