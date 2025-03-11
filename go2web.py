@@ -319,3 +319,6 @@ def main():
             print(f"Invalid link number. Please choose a number between 1 and {len(results)}.")    
     else:
         parser.print_help()
+        
+if __name__ == "__main__":
+    main()
