@@ -248,6 +248,9 @@ def main():
     parser = argparse.ArgumentParser(description="Simple web client for HTTP requests")
     parser.add_argument("-u", "--url", help="Make an HTTP request to the specified URL")
     parser.add_argument("-s", "--search", help="Search term to look up")
+    parser.add_argument("--link", type=int, help="Access a specific link number from search results")
+    # parser.add_argument("--json", action="store_true", help="Request JSON content")
+    # parser.add_argument("--html", action="store_true", help="Request HTML content")
     
     args = parser.parse_args()
     # Store last search results for link navigation
@@ -270,9 +273,7 @@ def main():
             
             # Save links for future reference
             with open(last_results_file, 'w') as f:
-                json.dump([(text, link) for text, link in links], f)  
-                
-            print("\nYou can access any of these links using: go2web --link <number>")      
+                json.dump([(text, link) for text, link in links], f)
             
     elif args.search:
         results = search(args.search)
@@ -316,7 +317,7 @@ def main():
             else:
                 format_html_content(response)
         else:
-            print(f"Invalid link number. Please choose a number between 1 and {len(results)}.")    
+            print(f"Invalid link number. Please choose a number between 1 and {len(results)}.")
     else:
         parser.print_help()
         
