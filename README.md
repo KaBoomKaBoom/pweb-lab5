@@ -2,7 +2,7 @@
 
 A command-line web client that allows you to make HTTP requests, search the web, and view content in a human-readable format without relying on external HTTP libraries.
 
-![go2web demo](path/to/your/demo.gif)
+![go2web demo](pweb_lab5.gif)
 
 ## Features
 
